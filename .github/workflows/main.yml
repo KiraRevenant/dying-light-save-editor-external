@@ -1,0 +1,95 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      release-time: ${{ steps.output-params.outputs.release-time }}
+      release-name: ${{ steps.output-params.outputs.release-name }}
+    steps:
+      - name: Set output parameters
+        id: output-params
+        run: |
+          release_time=$(date --utc '+%Y%m%d%H%M%S')
+          echo "::set-output name=release-time::${release_time}"
+          echo "::set-output name=release-name::vcpkg-${release_time}"
+  build:
+    name: Build (${{ matrix.config.os }}, ${{ matrix.config.compiler }}${{ matrix.config.compiler-version }})
+    needs: setup
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler: "gcc", compiler-version: 10, packages: "gcc-10 g++-10", cc: /usr/bin/gcc-10, cxx: /usr/bin/g++-10 }
+          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler: "gcc", compiler-version: 11, packages: "gcc-11 g++-11", cc: /usr/bin/gcc-11, cxx: /usr/bin/g++-11 }
+          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler: "clang", compiler-version: 11, packages: "clang-11 clang++-11", cc: /usr/bin/clang-11, cxx: /usr/bin/clang++-11 }
+          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler: "clang", compiler-version: 12, packages: "clang-12 clang++-12", cc: /usr/bin/clang-12, cxx: /usr/bin/clang++-12 }
+          - { os: windows-latest, vcpkg-triplet: x64-windows, arch: amd64, compiler: "vc", compiler-version: 142 }
+    env:
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.config.vcpkg-triplet}}
+    steps:
+      - name: Install Linux tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get install cmake ninja-build ${{ matrix.config.packages }}
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Set Linux environment variables
+        if: runner.os == 'Linux'
+        run: |
+          echo "CC=${{ matrix.config.cc }}" >> ${GITHUB_ENV}
+          echo "CXX=${{ matrix.config.cxx }}" >> ${GITHUB_ENV}
+      - name: Set Windows/VC++ environment variables
+        if: runner.os == 'Windows' && matrix.config.compiler == 'vc'
+        run: echo "VCPKG_PLATFORM_TOOLSET=v${{ matrix.config.compiler-version }}" >> ${GITHUB_ENV}
+        shell: bash
+      - name: Bootstrap vcpkg
+        run: vcpkg/bootstrap-vcpkg.sh -disableMetrics
+        shell: bash
+      - name: Install common libraries
+        run: vcpkg/vcpkg install catch2 docopt nlohmann-json sqlite3 zlib
+        shell: bash
+      - name: Install Linux libraries
+        if: runner.os == 'Linux'
+        run: vcpkg/vcpkg install libuuid
+      - name: Set output parameters
+        id: output-params
+        run: echo "::set-output name=vcpkg-export-name::${{ needs.setup.outputs.release-name }}-${{ matrix.config.compiler }}${{ matrix.config.compiler-version }}-${{ matrix.config.arch }}"
+        shell: bash
+      - name: Export packages from vcpkg
+        run: vcpkg/vcpkg export --x-all-installed --zip "--output=${{ steps.output-params.outputs.vcpkg-export-name }}"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vcpkg-export
+          path: vcpkg/${{ steps.output-params.outputs.vcpkg-export-name }}.zip
+  ghr-setup:
+    name: Set up GHR
+    # "setup" is only here so we can use its output parameter
+    needs: [setup, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+      - name: Create GH release
+        run: gh release create --draft --target "${GITHUB_SHA}" "${{ needs.setup.outputs.release-name }}"
+        shell: bash
+  ghr-upload:
+    name: Upload GHR assets
+    # "setup" is only here so we can use its output parameter
+    needs: [setup, ghr-setup]
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+      - name: Upload assets
+        run: gh release upload "${{ needs.setup.outputs.release-name }}" vcpkg-export/*
+        shell: bash
