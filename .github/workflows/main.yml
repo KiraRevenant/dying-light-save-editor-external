@@ -23,11 +23,11 @@ jobs:
     strategy:
       matrix:
         config:
-          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "gnu", compiler-version: 10, packages: "gcc-10 g++-10", cc: /usr/bin/gcc-10, cxx: /usr/bin/g++-10 }
-          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "gnu", compiler-version: 11, packages: "gcc-11 g++-11", cc: /usr/bin/gcc-11, cxx: /usr/bin/g++-11 }
-          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "clang", compiler-version: 11, packages: "clang-11 clang++-11", cc: /usr/bin/clang-11, cxx: /usr/bin/clang++-11 }
-          - { os: ubuntu-latest, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "clang", compiler-version: 12, packages: "clang-12 clang++-12", cc: /usr/bin/clang-12, cxx: /usr/bin/clang++-12 }
-          - { os: windows-latest, vcpkg-triplet: x64-windows, arch: amd64, compiler-id: "msvc", compiler-version: 142 }
+          - { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "gnu", compiler-version: 10, packages: "gcc-10 g++-10", cc: /usr/bin/gcc-10, cxx: /usr/bin/g++-10 }
+          - { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "gnu", compiler-version: 11, packages: "gcc-11 g++-11", cc: /usr/bin/gcc-11, cxx: /usr/bin/g++-11 }
+          - { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "clang", compiler-version: 11, packages: "clang-11 clang++-11", cc: /usr/bin/clang-11, cxx: /usr/bin/clang++-11 }
+          - { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "clang", compiler-version: 12, packages: "clang-12 clang++-12", cc: /usr/bin/clang-12, cxx: /usr/bin/clang++-12 }
+          - { os: windows-latest, vcpkg-os: windows, vcpkg-triplet: x64-windows, arch: amd64, compiler-id: "msvc", compiler-version: 142 }
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.config.vcpkg-triplet}}
     steps:
@@ -57,7 +57,7 @@ jobs:
         run: vcpkg/vcpkg install libuuid
       - name: Set output parameters
         id: output-params
-        run: echo "::set-output name=vcpkg-export-name::${{ needs.setup.outputs.release-name }}-${{ matrix.config.compiler-id }}${{ matrix.config.compiler-version }}-${{ matrix.config.arch }}"
+        run: echo "::set-output name=vcpkg-export-name::${{ needs.setup.outputs.release-name }}-${{ matrix.config.vcpkg-os }}-${{ matrix.config.compiler-id }}${{ matrix.config.compiler-version }}-${{ matrix.config.arch }}"
         shell: bash
       - name: Export packages from vcpkg
         run: vcpkg/vcpkg export --x-all-installed --zip "--output=${{ steps.output-params.outputs.vcpkg-export-name }}"
