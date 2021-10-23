@@ -1,9 +1,17 @@
+#!/usr/bin/env bash
+
 export CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10
 
 # Build vcpkg
 (cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics) || exit 1
 # Install libraries with vcpkg
-(cd vcpkg && ./vcpkg install Catch2 docopt libuuid nlohmann-json palsigslot sqlite3 zlib && ./vcpkg upgrade --no-dry-run) || exit 1
+(cd vcpkg && ./vcpkg install Catch2 palsigslot sqlite3 zlib) || exit 1
+
+if [[ "${OSTYPE}" == "msys" || "${OSTYPE}" == "cygwin" ]]; then
+    (cd vcpkg && ./vcpkg install libuuid) || exit 1
+fi
+
+(cd vcpkg && ./vcpkg upgrade --no-dry-run) || exit 1
 
 # Install Debian packages
 # wxWidgets requires GTK
