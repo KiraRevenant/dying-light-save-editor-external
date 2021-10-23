@@ -7,7 +7,7 @@ export CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10
 # Install libraries with vcpkg
 (cd vcpkg && ./vcpkg install Catch2 palsigslot sqlite3 zlib) || exit 1
 
-if [[ "${OSTYPE}" == "msys" || "${OSTYPE}" == "cygwin" ]]; then
+if [[ "${OSTYPE}" == "linux-gnu" ]]; then
     (cd vcpkg && ./vcpkg install libuuid) || exit 1
 fi
 
