@@ -46,15 +46,9 @@ jobs:
         if: matrix.config.compiler-id == 'msvc'
         run: echo "VCPKG_PLATFORM_TOOLSET=v${{ matrix.config.compiler-version }}" >> ${GITHUB_ENV}
         shell: bash
-      - name: Bootstrap vcpkg
-        run: vcpkg/bootstrap-vcpkg.sh -disableMetrics
+      - name: Build libraries
+        run: ./build.sh
         shell: bash
-      - name: Install common libraries
-        run: vcpkg/vcpkg install catch2 docopt nlohmann-json sqlite3 zlib
-        shell: bash
-      - name: Install Linux libraries
-        if: runner.os == 'Linux'
-        run: vcpkg/vcpkg install libuuid
       - name: Set output parameters
         id: output-params
         run: echo "::set-output name=vcpkg-export-name::${{ needs.setup.outputs.release-name }}-${{ matrix.config.vcpkg-os }}-${{ matrix.config.compiler-id }}${{ matrix.config.compiler-version }}-${{ matrix.config.arch }}"
