@@ -15,12 +15,14 @@ fi
 
 # Install Debian packages
 # wxWidgets requires GTK
-for dpkg_name in libgtk-3-dev; do
-    dpkg_status=$(dpkg-query --show --showformat='${db:Status-Status}' "${dpkg_name}") || exit 1
-    if [[ "${dpkg_status}" != "installed" ]]; then
-        sudo apt install "${dpkg_name}" || exit 1
-    fi
-done
+if [[ "${OSTYPE}" == "linux-gnu" ]]; then
+    for dpkg_name in libgtk-3-dev; do
+        dpkg_status=$(dpkg-query --show --showformat='${db:Status-Status}' "${dpkg_name}") || exit 1
+        if [[ "${dpkg_status}" != "installed" ]]; then
+            sudo apt install "${dpkg_name}" || exit 1
+        fi
+    done
+fi
 
 # Build wxWidgets
 cmake -G Ninja -B "wxWidgets-build" -S wxWidgets "-DCMAKE_INSTALL_PREFIX=wxWidgets-install" \
