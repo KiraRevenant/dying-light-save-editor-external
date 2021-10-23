@@ -25,7 +25,11 @@ if [[ "${OSTYPE}" == "linux-gnu" ]]; then
 fi
 
 # Build wxWidgets
-cmake -G Ninja -B "wxWidgets-build" -S wxWidgets "-DCMAKE_INSTALL_PREFIX=wxWidgets-install" \
-    -DwxBUILD_COMPATIBILITY=3.1 -DwxUSE_LIBJPEG=OFF -DwxUSE_LIBTIFF=OFF -DwxBUILD_DEMOS=OFF || exit 1
-cmake --build "wxWidgets-build" || exit 1
-cmake --install "wxWidgets-build" || exit 1
+for config in Debug Release; do
+    cmake -G Ninja -B "wxWidgets-build/${config}" -S wxWidgets \
+        "-DCMAKE_BUILD_TYPE=${config}" \
+        "-DCMAKE_INSTALL_PREFIX=wxWidgets-install/${config}" \
+        -DwxBUILD_COMPATIBILITY=3.1 -DwxUSE_LIBJPEG=OFF -DwxUSE_LIBTIFF=OFF -DwxBUILD_DEMOS=OFF || exit 1
+    cmake --build "wxWidgets-build/${config}" || exit 1
+    cmake --install "wxWidgets-build/${config}" || exit 1
+done
