@@ -37,13 +37,13 @@ jobs:
         if: matrix.config.compiler-id == 'msvc'
         run: echo "VCPKG_PLATFORM_TOOLSET=v${{ matrix.config.compiler-version }}" >> ${GITHUB_ENV}
         shell: bash
-      - name: Build Docker image
-        run: docker build --tag builder .
       - name: Create install directory
         run: mkdir --parent install
       - name: Build libraries with Docker
         if: runner.os == 'Linux'
-        run: docker run --rm --tty --mount "type=bind,src=${PWD}/install,dst=/work/install" --env "CC=${{ matrix.config.cc }}" --env "CXX=${{ matrix.config.cxx }}" builder
+        run: |
+          docker build --tag builder .
+          docker run --rm --tty --mount "type=bind,src=${PWD}/install,dst=/work/install" --env "CC=${{ matrix.config.cc }}" --env "CXX=${{ matrix.config.cxx }}" builder
       - name:
         run: (mkdir dist && cd install && zip -r "../dist/${{ needs.setup.outputs.release-name }}-${{ matrix.config.vcpkg-os }}-${{ matrix.config.compiler-id }}${{ matrix.config.compiler-version }}-${{ matrix.config.arch }}.zip" .)
       - name: Upload artifacts
