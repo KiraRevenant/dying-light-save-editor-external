@@ -24,11 +24,11 @@ jobs:
     strategy:
       matrix:
         config:
-          - { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "gnu", compiler-version: 10, cc: /usr/bin/gcc-10, cxx: /usr/bin/g++-10 }
+          #- { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "gnu", compiler-version: 10, cc: /usr/bin/gcc-10, cxx: /usr/bin/g++-10 }
           #- { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "gnu", compiler-version: 11, cc: /usr/bin/gcc-11, cxx: /usr/bin/g++-11 }
           #- { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "clang", compiler-version: 11, cc: /usr/bin/clang-11, cxx: /usr/bin/clang++-11 }
           #- { os: ubuntu-latest, vcpkg-os: linux, vcpkg-triplet: x64-linux, arch: amd64, compiler-id: "clang", compiler-version: 12, cc: /usr/bin/clang-12, cxx: /usr/bin/clang++-12 }
-          #- { os: windows-latest, vcpkg-os: windows, vcpkg-triplet: x64-windows-static, arch: amd64, compiler-id: "msvc", compiler-version: 142 }
+          - { os: windows-latest, vcpkg-os: windows, vcpkg-triplet: x64-windows-static, arch: amd64, compiler-id: "msvc", compiler-version: 142 }
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.config.vcpkg-triplet}}
     steps:
