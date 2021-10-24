@@ -54,6 +54,7 @@ jobs:
         shell: cmd
       - name: Package
         run: (mkdir dist && cd install && zip -r "../dist/${{ needs.setup.outputs.release-name }}-${{ matrix.config.vcpkg-os }}-${{ matrix.config.compiler-id }}${{ matrix.config.compiler-version }}-${{ matrix.config.arch }}.zip" .)
+        shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
