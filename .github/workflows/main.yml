@@ -32,6 +32,9 @@ jobs:
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.config.vcpkg-triplet}}
     steps:
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        run: choco install ninja
       - uses: actions/checkout@v2
       - name: Set MSVC environment variables
         if: matrix.config.compiler-id == 'msvc'
