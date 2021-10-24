@@ -40,7 +40,7 @@ function build_vcpkg {
 
 function build_wxwidgets {
     if [[ ! -d "./wxWidgets-${wxwidgets_version}" ]]; then
-        curl -sSL "https://github.com/wxWidgets/wxWidgets/releases/download/v${wxwidgets_version}/wxWidgets-${wxwidgets_version}.tar.bz2" | tar -x || return 1
+        curl -sSL "https://github.com/wxWidgets/wxWidgets/releases/download/v${wxwidgets_version}/wxWidgets-${wxwidgets_version}.tar.bz2" | tar -xj || return 1
     fi
     cd "./wxWidgets-${wxwidgets_version}" || return 1
     for config in Debug Release; do
