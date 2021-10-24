@@ -16,10 +16,11 @@ fi
 # Install Debian packages
 # wxWidgets requires GTK
 if [[ "${OSTYPE}" == "linux-gnu" ]]; then
+    sudo apt-get update || exit 1
     for dpkg_name in libgtk-3-dev; do
         dpkg_status=$(dpkg-query --show --showformat='${db:Status-Status}' "${dpkg_name}") || exit 1
         if [[ "${dpkg_status}" != "installed" ]]; then
-            sudo apt install "${dpkg_name}" || exit 1
+            sudo apt-get install "${dpkg_name}" || exit 1
         fi
     done
 fi
