@@ -34,7 +34,7 @@ jobs:
     steps:
       - name: Install Windows dependencies
         if: runner.os == 'Windows'
-        run: choco install ninja
+        run: choco install ninja zip
       - uses: actions/checkout@v2
       - name: Set MSVC environment variables
         if: matrix.config.compiler-id == 'msvc'
