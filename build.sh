@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-release_time=$(date --utc '+%Y%m%d%H%M%S')
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 source_dir=${script_dir}/source
 build_dir=${script_dir}/build
