@@ -2,6 +2,21 @@
 
 export CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10
 
+# Install Debian packages
+# wxWidgets requires GTK
+if [[ "${OSTYPE}" == "linux-gnu" ]]; then
+    updated_package_repos=false
+    for dpkg_name in libgtk-3-dev; do
+        dpkg_status=$(dpkg-query --show --showformat='${db:Status-Status}' "${dpkg_name}") || exit 1
+        if [[ "${dpkg_status}" != "installed" ]]; then
+            if [[ "${updated_package_repos}" != "true" ]]; then
+                sudo apt-get update || exit 1
+            fi
+            sudo apt-get install "${dpkg_name}" || exit 1
+        fi
+    done
+fi
+
 # Build vcpkg
 (cd vcpkg && ./bootstrap-vcpkg.sh -disableMetrics) || exit 1
 # Install libraries with vcpkg
@@ -12,18 +27,6 @@ if [[ "${OSTYPE}" == "linux-gnu" ]]; then
 fi
 
 (cd vcpkg && ./vcpkg upgrade --no-dry-run) || exit 1
-
-# Install Debian packages
-# wxWidgets requires GTK
-if [[ "${OSTYPE}" == "linux-gnu" ]]; then
-    sudo apt-get update || exit 1
-    for dpkg_name in libgtk-3-dev; do
-        dpkg_status=$(dpkg-query --show --showformat='${db:Status-Status}' "${dpkg_name}") || exit 1
-        if [[ "${dpkg_status}" != "installed" ]]; then
-            sudo apt-get install "${dpkg_name}" || exit 1
-        fi
-    done
-fi
 
 # Build wxWidgets
 for config in Debug Release; do
