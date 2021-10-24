@@ -5,16 +5,17 @@ export CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10
 # Install Debian packages
 # wxWidgets requires GTK
 if [[ "${OSTYPE}" == "linux-gnu" ]]; then
-    updated_package_repos=false
+    missing_package=false
     for dpkg_name in libgtk-3-dev; do
         dpkg_status=$(dpkg-query --show --showformat='${db:Status-Status}' "${dpkg_name}") || exit 1
         if [[ "${dpkg_status}" != "installed" ]]; then
-            if [[ "${updated_package_repos}" != "true" ]]; then
-                sudo apt-get update || exit 1
-            fi
-            sudo apt-get install "${dpkg_name}" || exit 1
+            missing_package=true
+            echo "Required package is not installed: ${dpkg_name}"
         fi
     done
+    if [[ "${missing_package}" != "false" ]]; then
+        exit 1
+    fi
 fi
 
 # Build vcpkg
