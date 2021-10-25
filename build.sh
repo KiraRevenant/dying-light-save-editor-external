@@ -44,18 +44,58 @@ function build_wxwidgets {
     fi
     cd "./wxWidgets-${wxwidgets_version}" || return 1
     for config in Debug Release; do
+        wxwidgets_install_prefix="${install_dir}/wxwidgets/${config,,}"
         cmake -G Ninja -B "${build_dir}/wxwidgets/${config,,}" -S . \
             "-DCMAKE_BUILD_TYPE=${config}" \
-            "-DCMAKE_INSTALL_PREFIX=${install_dir}/wxwidgets/${config,,}" \
-            -DwxBUILD_COMPATIBILITY=3.1 -DwxUSE_LIBJPEG=OFF -DwxUSE_LIBTIFF=OFF -DwxBUILD_DEMOS=OFF || return 1
-        cmake --build "${build_dir}/wxwidgets/${config,,}" || return 1
-        if [[ -d "${install_dir}/wxwidgets/${config,,}" ]]; then
-            rm -rf "${install_dir}/wxwidgets/${config,,}" || return 1
+            "-DCMAKE_INSTALL_PREFIX=${wxwidgets_install_prefix}" \
+            -DCMAKE_CXX_FLAGS="-DG_DISABLE_ASSERT" \
+            -DwxBUILD_COMPATIBILITY=3.1 \
+            -DwxBUILD_DEBUG_LEVEL=0 \
+            -DwxUSE_AUI=OFF \
+            -DwxUSE_CRASHREPORT=OFF \
+            -DwxUSE_DEBUGREPORT=OFF \
+            -DwxUSE_FS_INET=OFF \
+            -DwxUSE_HTML=OFF \
+            -DwxUSE_LIBJPEG=OFF \
+            -DwxUSE_LIBTIFF=OFF \
+            -DwxUSE_LOG=OFF \
+            -DwxUSE_LOG_DIALOG=OFF \
+            -DwxUSE_LOGGUI=OFF \
+            -DwxUSE_LOGWINDOW=OFF \
+            -DwxUSE_MEDIACTRL=OFF \
+            -DwxUSE_MS_HTML_HELP=OFF \
+            -DwxUSE_OPENGL=OFF \
+            -DwxUSE_REGEX=OFF \
+            -DwxUSE_PROPGRID=OFF \
+            -DwxUSE_PROTOCOL=OFF \
+            -DwxUSE_RIBBON=OFF \
+            -DwxUSE_RICHTEXT=OFF \
+            -DwxUSE_SOCKETS=OFF \
+            -DwxUSE_SECRETSTORE=OFF \
+            -DwxUSE_SOUND=OFF \
+            -DwxUSE_STC=OFF \
+            -DwxUSE_URL=OFF \
+            -DwxUSE_WEBVIEW=OFF \
+            -DwxUSE_WEBREQUEST=OFF \
+            -DwxUSE_WXHTML_HELP=OFF \
+            -DwxUSE_XML=OFF \
+            -DwxUSE_XRC=OFF \
+            || return 1
+        if [[ -d "${wxwidgets_install_prefix}" ]]; then
+            rm -rf "${wxwidgets_install_prefix}" || return 1
         fi
-        cmake --install "${build_dir}/wxwidgets/${config,,}" || return 1
+        cmake --build "${build_dir}/wxwidgets/${config,,}" --target install || return 1
         # Recreate symlinks to use relative paths instead of absolute paths
-        find "${install_dir}/wxwidgets/${config,,}/bin" -type l | while read f; do
-            ln --force --relative --symbolic "$(readlink "${f}")" "${f}" || return 1
+        if [[ -d "${wxwidgets_install_prefix}/bin" ]]; then
+            find "${wxwidgets_install_prefix}/bin" -type l | while read f; do
+                ln --force --relative --symbolic "$(readlink "${f}")" "${f}" || return 1
+            done || return 1
+        fi
+        # Remove wxINSTALL_PREFIX definition because it hardcodes an absolute path in the build environment
+        # Instead the library consumer should specify this
+        # This doesn't change RPATH information embedded in binaries
+        find "${wxwidgets_install_prefix}/lib/" -name "setup.h" | while read f; do
+            sed -i 's/#define wxINSTALL_PREFIX .*/\/\/#define wxINSTALL_PREFIX ""/' "${f}" || return 1
         done || return 1
     done
 }
